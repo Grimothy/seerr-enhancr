@@ -1,5 +1,6 @@
 import { MediaServerType } from '@server/constants/server';
 import blacklistedTagsProcessor from '@server/job/blacklistedTagsProcessor';
+import networkMappingValidator from '@server/job/networkMappingValidator';
 import availabilitySync from '@server/lib/availabilitySync';
 import downloadTracker from '@server/lib/downloadtracker';
 import ImageProxy from '@server/lib/imageproxy';
@@ -252,6 +253,22 @@ export const startJobs = (): void => {
     }),
     running: () => blacklistedTagsProcessor.status().running,
     cancelFn: () => blacklistedTagsProcessor.cancel(),
+  });
+
+  scheduledJobs.push({
+    id: 'network-mapping-validation',
+    name: 'Network Mapping Validation',
+    type: 'process',
+    interval: 'days',
+    cronSchedule: jobs['network-mapping-validation'].schedule,
+    job: schedule.scheduleJob(jobs['network-mapping-validation'].schedule, () => {
+      logger.info('Starting scheduled job: Network Mapping Validation', {
+        label: 'Jobs',
+      });
+      networkMappingValidator.run();
+    }),
+    running: () => networkMappingValidator.status().running,
+    cancelFn: () => networkMappingValidator.cancel(),
   });
 
   logger.info('Scheduled jobs loaded', { label: 'Jobs' });

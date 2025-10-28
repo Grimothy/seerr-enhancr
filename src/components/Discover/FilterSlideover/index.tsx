@@ -1,5 +1,4 @@
 import Button from '@app/components/Common/Button';
-import Modal from '@app/components/Common/Modal';
 import MultiRangeSlider from '@app/components/Common/MultiRangeSlider';
 import SlideOver from '@app/components/Common/SlideOver';
 import type { FilterOptions } from '@app/components/Discover/constants';

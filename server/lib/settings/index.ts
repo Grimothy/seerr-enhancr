@@ -346,7 +346,8 @@ export type JobId =
   | 'jellyfin-full-scan'
   | 'image-cache-cleanup'
   | 'availability-sync'
-  | 'process-blacklisted-tags';
+  | 'process-blacklisted-tags'
+  | 'network-mapping-validation';
 
 export interface AllSettings {
   clientId: string;
@@ -572,6 +573,9 @@ class Settings {
         },
         'process-blacklisted-tags': {
           schedule: '0 30 1 */7 * *',
+        },
+        'network-mapping-validation': {
+          schedule: '0 0 2 */30 * *', // Run at 2 AM every 30 days
         },
       },
       network: {

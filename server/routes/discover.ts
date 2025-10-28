@@ -173,21 +173,20 @@ discoverRoutes.get('/movies', async (req, res, next) => {
       certificationCountry: query.certificationCountry,
     });
 
+    // Filter by studio if specified - TMDB's with_companies is not always accurate
+    const resultsToUse = query.studio
+      ? await filterMovieResultsByStudio(
+          tmdb,
+          data.results,
+          Number(query.studio),
+          req.locale ?? query.language
+        )
+      : data.results;
+
     const media = await Media.getRelatedMedia(
       req.user,
-      data.results.map((result) => result.id)
+      resultsToUse.map((result) => result.id)
     );
-
-    // Filter by studio if specified - TMDB's with_companies is not always accurate
-    let filteredResults = data.results;
-    if (query.studio) {
-      filteredResults = await filterMovieResultsByStudio(
-        tmdb,
-        data.results,
-        Number(query.studio),
-        req.locale ?? query.language
-      );
-    }
 
     let keywordData: TmdbKeyword[] = [];
     if (keywords) {
@@ -209,7 +208,7 @@ discoverRoutes.get('/movies', async (req, res, next) => {
       totalPages: data.total_pages,
       totalResults: data.total_results,
       keywords: keywordData,
-      results: data.results.map((result) =>
+      results: resultsToUse.map((result) =>
         mapMovieResult(
           result,
           media.find(
@@ -798,21 +797,20 @@ discoverRoutes.get('/tv', async (req, res, next) => {
       certificationCountry: query.certificationCountry,
     });
 
+    // Filter by network if specified - TMDB's with_networks is not always accurate
+    const resultsToUse = query.network
+      ? await filterTvResultsByNetwork(
+          tmdb,
+          data.results,
+          Number(query.network),
+          req.locale ?? query.language
+        )
+      : data.results;
+
     const media = await Media.getRelatedMedia(
       req.user,
-      data.results.map((result) => result.id)
+      resultsToUse.map((result) => result.id)
     );
-
-    // Filter by network if specified - TMDB's with_networks is not always accurate
-    let filteredResults = data.results;
-    if (query.network) {
-      filteredResults = await filterTvResultsByNetwork(
-        tmdb,
-        data.results,
-        Number(query.network),
-        req.locale ?? query.language
-      );
-    }
 
     let keywordData: TmdbKeyword[] = [];
     if (keywords) {
@@ -834,7 +832,7 @@ discoverRoutes.get('/tv', async (req, res, next) => {
       totalPages: data.total_pages,
       totalResults: data.total_results,
       keywords: keywordData,
-      results: data.results.map((result) =>
+      results: resultsToUse.map((result) =>
         mapTvResult(
           result,
           media.find(
@@ -983,11 +981,6 @@ discoverRoutes.get<{ networkId: string }>(
         network: Number(req.params.networkId),
       });
 
-      const media = await Media.getRelatedMedia(
-        req.user,
-        data.results.map((result) => result.id)
-      );
-
       // Filter results to ensure they actually belong to this network
       const filteredResults = await filterTvResultsByNetwork(
         tmdb,
@@ -996,12 +989,17 @@ discoverRoutes.get<{ networkId: string }>(
         (req.query.language as string) ?? req.locale
       );
 
+      const media = await Media.getRelatedMedia(
+        req.user,
+        filteredResults.map((result) => result.id)
+      );
+
       return res.status(200).json({
         page: data.page,
         totalPages: data.total_pages,
         totalResults: data.total_results,
         network: mapNetwork(network),
-        results: data.results.map((result) =>
+        results: filteredResults.map((result) =>
           mapTvResult(
             result,
             media.find(
@@ -1065,7 +1063,7 @@ discoverRoutes.get<{ networkId: string }>(
         totalPages: data.total_pages,
         totalResults: data.total_results,
         network: mapNetwork(network),
-        results: data.results.map((result) =>
+        results: filteredResults.map((result) =>
           mapTvResult(
             result,
             media.find(
@@ -1112,11 +1110,6 @@ discoverRoutes.get<{ networkId: string }>(
         voteCountGte: '50', // Minimum votes for reliable network data
       });
 
-      const media = await Media.getRelatedMedia(
-        req.user,
-        data.results.map((result) => result.id)
-      );
-
       // Filter results to ensure they actually belong to this network
       const filteredResults = await filterTvResultsByNetwork(
         tmdb,
@@ -1125,12 +1118,17 @@ discoverRoutes.get<{ networkId: string }>(
         (req.query.language as string) ?? req.locale
       );
 
+      const media = await Media.getRelatedMedia(
+        req.user,
+        filteredResults.map((result) => result.id)
+      );
+
       return res.status(200).json({
         page: data.page,
         totalPages: data.total_pages,
         totalResults: data.total_results,
         network: mapNetwork(network),
-        results: data.results.map((result) =>
+        results: filteredResults.map((result) =>
           mapTvResult(
             result,
             media.find(
@@ -1171,11 +1169,6 @@ discoverRoutes.get<{ networkId: string }>(
         voteCountGte: '50', // Minimum votes for reliable network data
       });
 
-      const media = await Media.getRelatedMedia(
-        req.user,
-        data.results.map((result) => result.id)
-      );
-
       // Filter results to ensure they actually belong to this network
       const filteredResults = await filterTvResultsByNetwork(
         tmdb,
@@ -1184,12 +1177,17 @@ discoverRoutes.get<{ networkId: string }>(
         (req.query.language as string) ?? req.locale
       );
 
+      const media = await Media.getRelatedMedia(
+        req.user,
+        filteredResults.map((result) => result.id)
+      );
+
       return res.status(200).json({
         page: data.page,
         totalPages: data.total_pages,
         totalResults: data.total_results,
         network: mapNetwork(network),
-        results: data.results.map((result) =>
+        results: filteredResults.map((result) =>
           mapTvResult(
             result,
             media.find(
@@ -1230,11 +1228,6 @@ discoverRoutes.get<{ networkId: string }>(
         voteCountGte: '100', // Minimum votes to qualify
       });
 
-      const media = await Media.getRelatedMedia(
-        req.user,
-        data.results.map((result) => result.id)
-      );
-
       // Filter results to ensure they actually belong to this network
       const filteredResults = await filterTvResultsByNetwork(
         tmdb,
@@ -1243,12 +1236,17 @@ discoverRoutes.get<{ networkId: string }>(
         (req.query.language as string) ?? req.locale
       );
 
+      const media = await Media.getRelatedMedia(
+        req.user,
+        filteredResults.map((result) => result.id)
+      );
+
       return res.status(200).json({
         page: data.page,
         totalPages: data.total_pages,
         totalResults: data.total_results,
         network: mapNetwork(network),
-        results: data.results.map((result) =>
+        results: filteredResults.map((result) =>
           mapTvResult(
             result,
             media.find(
@@ -1290,11 +1288,6 @@ discoverRoutes.get<{ networkId: string; genreId: string }>(
         voteCountGte: '50', // Add minimum vote threshold to get more reliable data
       });
 
-      const media = await Media.getRelatedMedia(
-        req.user,
-        data.results.map((result) => result.id)
-      );
-
       // Filter results to ensure they actually belong to this network
       const filteredResults = await filterTvResultsByNetwork(
         tmdb,
@@ -1303,12 +1296,17 @@ discoverRoutes.get<{ networkId: string; genreId: string }>(
         (req.query.language as string) ?? req.locale
       );
 
+      const media = await Media.getRelatedMedia(
+        req.user,
+        filteredResults.map((result) => result.id)
+      );
+
       return res.status(200).json({
         page: data.page,
         totalPages: data.total_pages,
         totalResults: data.total_results,
         network: mapNetwork(network),
-        results: data.results.map((result) =>
+        results: filteredResults.map((result) =>
           mapTvResult(
             result,
             media.find(
@@ -1351,11 +1349,6 @@ discoverRoutes.get<{ networkId: string }>(
         studio: companyId.toString(),
       });
 
-      const media = await Media.getRelatedMedia(
-        req.user,
-        data.results.map((result) => result.id)
-      );
-
       // Filter results to ensure they actually belong to this network/company
       const filteredResults = await filterMovieResultsByStudio(
         tmdb,
@@ -1364,12 +1357,17 @@ discoverRoutes.get<{ networkId: string }>(
         (req.query.language as string) ?? req.locale
       );
 
+      const media = await Media.getRelatedMedia(
+        req.user,
+        filteredResults.map((result) => result.id)
+      );
+
       return res.status(200).json({
         page: data.page,
         totalPages: data.total_pages,
         totalResults: data.total_results,
         network: mapNetwork(network),
-        results: data.results.map((result) =>
+        results: filteredResults.map((result) =>
           mapMovieResult(
             result,
             media.find(
@@ -1415,11 +1413,6 @@ discoverRoutes.get<{ networkId: string }>(
         voteCountGte: '50',
       });
 
-      const media = await Media.getRelatedMedia(
-        req.user,
-        data.results.map((result) => result.id)
-      );
-
       // Filter results to ensure they actually belong to this network/company
       const filteredResults = await filterMovieResultsByStudio(
         tmdb,
@@ -1428,12 +1421,17 @@ discoverRoutes.get<{ networkId: string }>(
         (req.query.language as string) ?? req.locale
       );
 
+      const media = await Media.getRelatedMedia(
+        req.user,
+        filteredResults.map((result) => result.id)
+      );
+
       return res.status(200).json({
         page: data.page,
         totalPages: data.total_pages,
         totalResults: data.total_results,
         network: mapNetwork(network),
-        results: data.results.map((result) =>
+        results: filteredResults.map((result) =>
           mapMovieResult(
             result,
             media.find(
@@ -1484,11 +1482,6 @@ discoverRoutes.get<{ networkId: string }>(
         voteCountGte: '50',
       });
 
-      const media = await Media.getRelatedMedia(
-        req.user,
-        data.results.map((result) => result.id)
-      );
-
       // Filter results to ensure they actually belong to this network/company
       const filteredResults = await filterMovieResultsByStudio(
         tmdb,
@@ -1497,12 +1490,17 @@ discoverRoutes.get<{ networkId: string }>(
         (req.query.language as string) ?? req.locale
       );
 
+      const media = await Media.getRelatedMedia(
+        req.user,
+        filteredResults.map((result) => result.id)
+      );
+
       return res.status(200).json({
         page: data.page,
         totalPages: data.total_pages,
         totalResults: data.total_results,
         network: mapNetwork(network),
-        results: data.results.map((result) =>
+        results: filteredResults.map((result) =>
           mapMovieResult(
             result,
             media.find(
@@ -1546,11 +1544,6 @@ discoverRoutes.get<{ networkId: string }>(
         voteCountGte: '100',
       });
 
-      const media = await Media.getRelatedMedia(
-        req.user,
-        data.results.map((result) => result.id)
-      );
-
       // Filter results to ensure they actually belong to this network/company
       const filteredResults = await filterMovieResultsByStudio(
         tmdb,
@@ -1559,12 +1552,17 @@ discoverRoutes.get<{ networkId: string }>(
         (req.query.language as string) ?? req.locale
       );
 
+      const media = await Media.getRelatedMedia(
+        req.user,
+        filteredResults.map((result) => result.id)
+      );
+
       return res.status(200).json({
         page: data.page,
         totalPages: data.total_pages,
         totalResults: data.total_results,
         network: mapNetwork(network),
-        results: data.results.map((result) =>
+        results: filteredResults.map((result) =>
           mapMovieResult(
             result,
             media.find(
@@ -1609,11 +1607,6 @@ discoverRoutes.get<{ networkId: string; genreId: string }>(
         voteCountGte: '50',
       });
 
-      const media = await Media.getRelatedMedia(
-        req.user,
-        data.results.map((result) => result.id)
-      );
-
       // Filter results to ensure they actually belong to this network/company
       const filteredResults = await filterMovieResultsByStudio(
         tmdb,
@@ -1622,12 +1615,17 @@ discoverRoutes.get<{ networkId: string; genreId: string }>(
         (req.query.language as string) ?? req.locale
       );
 
+      const media = await Media.getRelatedMedia(
+        req.user,
+        filteredResults.map((result) => result.id)
+      );
+
       return res.status(200).json({
         page: data.page,
         totalPages: data.total_pages,
         totalResults: data.total_results,
         network: mapNetwork(network),
-        results: data.results.map((result) =>
+        results: filteredResults.map((result) =>
           mapMovieResult(
             result,
             media.find(

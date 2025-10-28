@@ -12,10 +12,10 @@ import { useState } from 'react';
 import useSWR from 'swr';
 
 // MOVIES TOGGLE: Only enabled for streaming platforms that produce original movie content
-// 
+//
 // Tier 1 - Major Original Movie Producers:
 // - Netflix, Prime Video, Apple TV+, Disney+, HBO, Hulu, Nickelodeon
-// 
+//
 // Tier 2 - Notable Original Movie Content:
 // - Paramount+, Showtime, Starz
 //
@@ -99,9 +99,6 @@ const DiscoverNetworkEnhanced = () => {
     const movieUrlBase = useProductionCompany
         ? `studio=${companyId}`
         : `watchProviders=${providerId}&watchRegion=${watchRegion}`;
-
-    // Calculate date for "new releases" (last 180 days - ~6 months)
-    const newReleasesDate = new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
     const { data: networkData, error } = useSWR<{
         network: TvNetwork;
